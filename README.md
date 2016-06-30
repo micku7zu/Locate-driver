@@ -1,4 +1,4 @@
-# WAY - Where are you? 
+# Locate driver
 An Open Source Android Application that automatically shares your location while you drive based on SMS.
 
 
