@@ -76,6 +76,7 @@
 
         </com.micutu.locatedriver.Views.LDCard>
 
+        <!--
         <com.micutu.locatedriver.Views.LDCard
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -90,6 +91,7 @@
                 android:text="Nothing yet" />
 
         </com.micutu.locatedriver.Views.LDCard>
+        -->
 
         <com.micutu.locatedriver.Views.LDCard
             android:layout_width="match_parent"
@@ -102,7 +104,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nothing yet" />
+                android:paddingTop="8dp"
+                android:text="Open source application available on Github:\nhttps://github.com/micku7zu/Locate-driver\n\nCopyright © Sergiu Șandor 2016." />
 
         </com.micutu.locatedriver.Views.LDCard>
     </LinearLayout>
