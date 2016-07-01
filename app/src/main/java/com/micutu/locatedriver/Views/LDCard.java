@@ -31,6 +31,9 @@ public class LDCard extends CardView {
             linearLayout = (LinearLayout) this.findViewById(R.id.linear_layout);
             title = (TextView) this.findViewById(R.id.title);
             title.setText(attributes.getString(R.styleable.LDCard_title));
+            if(title.getText().length() == 0) {
+                linearLayout.removeView(title);
+            }
 
 
             for (int i = 0; i < children.length; i++) {

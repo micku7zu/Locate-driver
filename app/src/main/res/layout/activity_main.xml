@@ -24,7 +24,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
-            ldcard:title="@string/current_state_card_title">
+            ldcard:title="">
+
+            <fragment
+                android:id="@+id/destination_autocomplete"
+                android:name="com.micutu.locatedriver.Views.LDPlaceAutocompleteFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -37,51 +43,36 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="Destination: " />
-
-                <AutoCompleteTextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingBottom="8dp"
-                android:paddingTop="15dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="Keyword: " />
+                    android:text="@string/keyword" />
 
                 <EditText
+                    android:id="@+id/keyword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <Button
-                    android:id="@+id/start_button"
+                    android:id="@+id/send_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:backgroundTint="@color/colorAccent"
-                    android:text="Start"
+                    android:backgroundTint="@color/colorPrimary"
+                    android:text="@string/send_button"
+                    android:layout_alignParentLeft="true"
                     android:textColor="@android:color/white" />
 
                 <Button
-                    android:id="@+id/stop_button"
+                    android:id="@+id/running_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:backgroundTint="@color/colorAccent"
-                    android:text="Stop"
+                    android:text=""
+                    android:layout_alignParentRight="true"
                     android:textColor="@android:color/white" />
-            </LinearLayout>
+            </RelativeLayout>
 
         </com.micutu.locatedriver.Views.LDCard>
 
@@ -96,7 +87,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Aici vin setarile" />
+                android:text="Nothing yet" />
 
         </com.micutu.locatedriver.Views.LDCard>
 
@@ -111,7 +102,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Aici vine about" />
+                android:text="Nothing yet" />
 
         </com.micutu.locatedriver.Views.LDCard>
     </LinearLayout>

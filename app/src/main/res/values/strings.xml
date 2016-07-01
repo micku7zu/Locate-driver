@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">Locate driver</string>
-    <string name="current_state_card_title">Current state</string>
+    <string name="current_state_card_title">Setup</string>
     <string name="settings_card_title">Settings</string>
     <string name="about_card_title">About</string>
+    <string name="destination">Pick destination</string>
+    <string name="keyword">Keyword:</string>
+    <string name="destination_error">Error choosing destination :(</string>
+    <string name="stop">Stop</string>
+    <string name="start">Start</string>
+    <string name="error_no_keyword">You can\'t start the application without a keyword.</string>
+    <string name="send_button">Send location</string>
 </resources>
