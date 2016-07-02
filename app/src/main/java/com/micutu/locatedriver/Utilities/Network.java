@@ -1,6 +1,7 @@
 package com.micutu.locatedriver.Utilities;
 
-import android.util.Log;
+import android.content.Context;
+import android.net.ConnectivityManager;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -11,7 +12,12 @@ import java.net.URL;
 
 public class Network {
 
-    public static void get(final String urlString, final NetworkGetCallback callback) {
+    public static boolean isNetworkAvailable(final Context context) {
+        final ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
+        return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
+    }
+
+    public static void get(final String urlString, final OnGetFinishListener onGetFinishListener) {
         Thread thread = new Thread() {
             @Override
             public void run() {
@@ -27,9 +33,9 @@ public class Network {
                         total.append(line).append('\n');
                     }
 
-                    callback.received(total.toString());
+                    onGetFinishListener.onGetFinish(total.toString());
                 } catch (Exception e) {
-                    callback.received("{}");
+                    onGetFinishListener.onGetFinish("{}");
                 }
             }
         };
@@ -37,7 +43,7 @@ public class Network {
         thread.start();
     }
 
-    public interface NetworkGetCallback {
-        public void received(String result);
+    public interface OnGetFinishListener {
+        public void onGetFinish(String result);
     }
 }

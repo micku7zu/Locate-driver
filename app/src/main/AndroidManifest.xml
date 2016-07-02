@@ -21,7 +21,7 @@
             android:value="AIzaSyBT36tmLjf0azRAwa-thOfoQ6LWQzWm3xc" />
 
         <receiver
-            android:name="com.micutu.locatedriver.BroadcastReceivers.SmsReceiver"
+            android:name=".BroadcastReceivers.OnSmsReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter android:priority="999">

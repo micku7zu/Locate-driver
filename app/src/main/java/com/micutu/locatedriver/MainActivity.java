@@ -12,7 +12,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -25,7 +24,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.gson.Gson;
-import com.micutu.locatedriver.BroadcastReceivers.SmsReceiver;
+import com.micutu.locatedriver.BroadcastReceivers.OnSmsReceiver;
 import com.micutu.locatedriver.Fragments.LDPlaceAutocompleteFragment;
 import com.micutu.locatedriver.Model.LDPlace;
 
@@ -128,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void toggleBroadcastReceiver() {
-        ComponentName receiver = new ComponentName(getApplicationContext(), SmsReceiver.class);
+        ComponentName receiver = new ComponentName(getApplicationContext(), OnSmsReceiver.class);
         PackageManager pm = getApplicationContext().getPackageManager();
 
         pm.setComponentEnabledSetting(receiver,
