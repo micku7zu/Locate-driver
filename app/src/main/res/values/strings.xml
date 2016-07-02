@@ -4,10 +4,22 @@
     <string name="settings_card_title">Settings</string>
     <string name="about_card_title">About</string>
     <string name="destination">Pick destination</string>
-    <string name="keyword">Keyword:</string>
+    <string name="keyword">SMS Keyword:</string>
     <string name="destination_error">Error choosing destination :(</string>
     <string name="stop">Stop</string>
     <string name="start">Start</string>
     <string name="error_no_keyword">You can\'t start the application without a keyword.</string>
     <string name="send_button">Send location</string>
+    <string name="about_text">An Open Source application that automatically shares your location while you drive based on SMS available on Github:\nhttps://github.com/micku7zu/Locate-driver\n\nCopyright © Sergiu Șandor 2016.</string>
+    <string name="error_permission">Application needs all the permissions to be granted because without them it can\'t function correctly.</string>
+    <string name="sound_title">Sound</string>
+    <string name="sound_summary">Notification when keyword was detected.</string>
+    <string name="detected_message_title">First message</string>
+    <string name="detected_message_summary">Acknowledge that keyword was detected and send current data and GPS status.</string>
+    <string name="gps_message_title">Second message</string>
+    <string name="gps_message_summary">GPS informations: lat, long, speed, accuracy.</string>
+    <string name="google_message_title">Third message</string>
+    <string name="google_message_summary">Google maps link with your current location.</string>
+    <string name="network_message_title">Forth message</string>
+    <string name="network_message_summary">Informations about current address and remaining distance to destination.</string>
 </resources>

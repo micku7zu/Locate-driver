@@ -1,112 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:ldcard="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
-        android:id="@+id/content"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:orientation="vertical">
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:elevation="4dp"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <ScrollView
+        android:id="@+id/scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <com.micutu.locatedriver.Views.LDCard
+        <LinearLayout
+            android:id="@+id/content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            ldcard:title="">
+            android:orientation="vertical">
 
-            <fragment
-                android:id="@+id/destination_autocomplete"
-                android:name="com.micutu.locatedriver.Views.LDPlaceAutocompleteFragment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <LinearLayout
+            <com.micutu.locatedriver.Views.LDCard
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingBottom="8dp"
-                android:paddingTop="15dp">
+                android:layout_margin="8dp"
+                ldcard:title="">
+
+                <fragment
+                    android:id="@+id/destination_autocomplete"
+                    android:name="com.micutu.locatedriver.Fragments.LDPlaceAutocompleteFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="8dp"
+                    android:paddingTop="15dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="@string/keyword" />
+
+                    <EditText
+                        android:id="@+id/keyword"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <Button
+                        android:id="@+id/send_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:backgroundTint="@color/colorPrimary"
+                        android:text="@string/send_button"
+                        android:textColor="@android:color/white" />
+
+                    <Button
+                        android:id="@+id/running_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:backgroundTint="@color/colorAccent"
+                        android:text=""
+                        android:textColor="@android:color/white" />
+                </RelativeLayout>
+
+            </com.micutu.locatedriver.Views.LDCard>
+
+
+            <com.micutu.locatedriver.Views.LDCard
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                ldcard:title="@string/settings_card_title">
+
+                <FrameLayout
+                    android:id="@+id/settings_preferences_framelayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <fragment
+                        android:id="@+id/settings_preferences"
+                        android:name="com.micutu.locatedriver.Fragments.SettingsCardFragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                </FrameLayout>
+
+            </com.micutu.locatedriver.Views.LDCard>
+
+            <com.micutu.locatedriver.Views.LDCard
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                ldcard:title="@string/about_card_title">
 
                 <TextView
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="@string/keyword" />
-
-                <EditText
-                    android:id="@+id/keyword"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <Button
-                    android:id="@+id/send_button"
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:backgroundTint="@color/colorPrimary"
-                    android:text="@string/send_button"
-                    android:layout_alignParentLeft="true"
-                    android:textColor="@android:color/white" />
+                    android:autoLink="web"
+                    android:paddingTop="8dp"
+                    android:text="@string/about_text" />
 
-                <Button
-                    android:id="@+id/running_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@color/colorAccent"
-                    android:text=""
-                    android:layout_alignParentRight="true"
-                    android:textColor="@android:color/white" />
-            </RelativeLayout>
-
-        </com.micutu.locatedriver.Views.LDCard>
-
-        <!--
-        <com.micutu.locatedriver.Views.LDCard
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            ldcard:title="@string/settings_card_title">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Nothing yet" />
-
-        </com.micutu.locatedriver.Views.LDCard>
-        -->
-
-        <com.micutu.locatedriver.Views.LDCard
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            ldcard:title="@string/about_card_title">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingTop="8dp"
-                android:text="Open source application available on Github:\nhttps://github.com/micku7zu/Locate-driver\n\nCopyright © Sergiu Șandor 2016." />
-
-        </com.micutu.locatedriver.Views.LDCard>
-    </LinearLayout>
-</ScrollView>
+            </com.micutu.locatedriver.Views.LDCard>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

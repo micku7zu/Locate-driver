@@ -1,8 +1,14 @@
 package com.micutu.locatedriver;
 
+import android.Manifest;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.preference.PreferenceManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -11,15 +17,22 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
-import com.micutu.locatedriver.Views.LDPlaceAutocompleteFragment;
+import com.micutu.locatedriver.BroadcastReceivers.SmsReceiver;
+import com.micutu.locatedriver.Fragments.LDPlaceAutocompleteFragment;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
+    private static final int PERMISSION_RECEIVE_SMS = 0;
+    private static final int PERMISSION_SEND_SMS = 1;
+
     public static final String PREFS_NAME = "LocateDriver";
     private Boolean running = null;
     private String keyword = null;
@@ -30,11 +43,43 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        checkPermissions(); //check marshmallow permissions
         setContentView(R.layout.activity_main);
-        restoreSavedData();
+        restoreSavedData(); //restore keyword, destination, running
         setupToolbar();
         initApp();
         updateUI();
+        toggleBroadcastReceiver(); //set broadcast receiver for sms
+        scrollTop();
+    }
+
+    private void scrollTop() {
+        final ScrollView scrollView = (ScrollView) this.findViewById(R.id.scrollview);
+
+        scrollView.post(new Runnable() {
+            public void run() {
+                scrollView.scrollTo(0, 0);
+            }
+        });
+    }
+
+    private void checkPermissions() {
+        ArrayList<String> permissions = new ArrayList();
+        permissions.add(PERMISSION_RECEIVE_SMS, Manifest.permission.RECEIVE_SMS);
+        permissions.add(PERMISSION_SEND_SMS, Manifest.permission.SEND_SMS);
+
+        for (int i = 0; i < permissions.size(); i++) {
+            if (ContextCompat.checkSelfPermission(this, permissions.get(i)) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{permissions.get(i)}, i);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_DENIED) {
+            Toast.makeText(getApplicationContext(), getResources().getString(R.string.error_permission), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void clearFocus() {
@@ -72,6 +117,16 @@ public class MainActivity extends AppCompatActivity {
         this.running = !this.running;
         saveData();
         updateUI();
+        toggleBroadcastReceiver();
+    }
+
+    private void toggleBroadcastReceiver() {
+        ComponentName receiver = new ComponentName(getApplicationContext(), SmsReceiver.class);
+        PackageManager pm = getApplicationContext().getPackageManager();
+
+        pm.setComponentEnabledSetting(receiver,
+                (running) ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP);
     }
 
     private void initApp() {
@@ -135,6 +190,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void restoreSavedData() {
+        PreferenceManager.setDefaultValues(this, R.xml.settings_preferences, false);
+
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 
         this.running = settings.getBoolean("running", false);
