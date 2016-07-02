@@ -1,6 +1,8 @@
-package com.micutu.locatedriver.Utilities;
+package com.micutu.locatedriver.Services;
 
+import android.app.IntentService;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.location.Location;
@@ -11,18 +13,18 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.micutu.locatedriver.Model.LDPlace;
 import com.micutu.locatedriver.R;
+import com.micutu.locatedriver.Utilities.LocationGetter;
+import com.micutu.locatedriver.Utilities.Network;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class SmsSender implements LocationGetter.OnLocationGetListener {
-    private String TAG = SmsSender.class.getSimpleName();
+public class SmsSenderService extends IntentService implements LocationGetter.OnLocationGetListener {
+    private String TAG = SmsSenderService.class.getSimpleName();
 
     private Resources r = null;
     private Context context = null;
     private String phoneNumber = null;
-    private OnSmsSenderFinishListener onSmsSenderFinishListener = null;
-
 
     private LDPlace place = null;
     private boolean keywordReceivedSms = false;
@@ -32,14 +34,25 @@ public class SmsSender implements LocationGetter.OnLocationGetListener {
 
     private boolean alreadySentFlag = false;
 
-    public SmsSender(Context context, String phoneNumber, OnSmsSenderFinishListener onSmsSenderFinishListener) {
-        this.context = context;
-        this.r = context.getResources();
-        this.phoneNumber = phoneNumber;
-        this.onSmsSenderFinishListener = onSmsSenderFinishListener;
+    public SmsSenderService() {
+        super("SmsSenderService");
+    }
 
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        Log.d(TAG, "onHandleIntent");
+        this.phoneNumber = intent.getExtras().getString("phoneNumber");
+
+        if (this.phoneNumber.length() == 0) {
+            Log.d(TAG, "Phonenumber empty, return.");
+            return;
+        }
+
+        this.context = this;
+        this.r = context.getResources();
         initSending();
     }
+
 
     private void initSending() {
         Log.d(TAG, "initSending()");
@@ -54,7 +67,7 @@ public class SmsSender implements LocationGetter.OnLocationGetListener {
 
     @Override
     public void onLocationGet(Location location) {
-        Log.d(TAG, "onLocationGet: " + location.getAccuracy());
+        Log.d(TAG, "onLocationGet " + location);
 
         if(alreadySentFlag) { //for protection
             Log.d(TAG, "ALREADY SENT, CEVA SE INTAMPLA!!!");
@@ -65,7 +78,6 @@ public class SmsSender implements LocationGetter.OnLocationGetListener {
 
         if (location == null) {
             this.sendSMS(phoneNumber, r.getString(R.string.error_getting_location));
-            onSmsSenderFinishListener.onSmsSenderFinish();
             return;
         }
 
@@ -78,14 +90,13 @@ public class SmsSender implements LocationGetter.OnLocationGetListener {
         }
 
         if (!networkSms) {
-            onSmsSenderFinishListener.onSmsSenderFinish();
             return;
         }
 
         this.sendNetworkMessage(phoneNumber, location, place, new OnNetworkMessageSentListener() {
             @Override
             public void onNetworkMessageSent() {
-                onSmsSenderFinishListener.onSmsSenderFinish();
+                Log.d(TAG, "on Network Message Sent");
             }
         });
     }
@@ -118,7 +129,7 @@ public class SmsSender implements LocationGetter.OnLocationGetListener {
         String text = r.getString(R.string.acknowledgeMessage);
         text += " " + r.getString(R.string.network) + " " + this.booleanToString(Network.isNetworkAvailable(context));
         text += ", " + r.getString(R.string.gps) + " " + LocationGetter.locationToString(context, LocationGetter.getLocationMode(context));
-        SmsSender.sendSMS(phoneNumber, text);
+        SmsSenderService.sendSMS(phoneNumber, text);
     }
 
     public void sendLocationMessage(String phoneNumber, Location location) {
@@ -128,19 +139,19 @@ public class SmsSender implements LocationGetter.OnLocationGetListener {
         text += r.getString(R.string.latitude) + " " + location.getLatitude() + "\n";
         text += r.getString(R.string.longitude) + " " + location.getLongitude() + "\n";
         text += r.getString(R.string.speed) + " " + location.getSpeed() + "KM/H";
-        SmsSender.sendSMS(phoneNumber, text);
+        SmsSenderService.sendSMS(phoneNumber, text);
     }
 
     public void sendGoogleMapsMessage(String phoneNumber, Location location) {
         Log.d(TAG, "sendGoogleMapsMessage() " + location.getAccuracy());
         String text = "https://maps.google.com/maps?q=" + location.getLatitude() + "," + location.getLongitude();
-        SmsSender.sendSMS(phoneNumber, text);
+        SmsSenderService.sendSMS(phoneNumber, text);
     }
 
     public void sendNetworkMessage(final String phoneNumber, final Location location, final LDPlace place, final OnNetworkMessageSentListener onNetworkMessageSentListener) {
         Log.d(TAG, "sendNetworkMessage() " + location.getAccuracy());
         if (!Network.isNetworkAvailable(context)) {
-            SmsSender.sendSMS(phoneNumber, r.getString(R.string.no_network));
+            SmsSenderService.sendSMS(phoneNumber, r.getString(R.string.no_network));
             onNetworkMessageSentListener.onNetworkMessageSent();
             return;
         }
@@ -154,7 +165,7 @@ public class SmsSender implements LocationGetter.OnLocationGetListener {
                     final String firstText = r.getString(R.string.address) + " " + address + ". ";
 
                     if (place == null) {
-                        SmsSender.sendSMS(phoneNumber, firstText + r.getString(R.string.no_destination));
+                        SmsSenderService.sendSMS(phoneNumber, firstText + r.getString(R.string.no_destination));
                         onNetworkMessageSentListener.onNetworkMessageSent();
                         return;
                     }
@@ -167,7 +178,7 @@ public class SmsSender implements LocationGetter.OnLocationGetListener {
                                 String distance = j.getJSONObject("distance").getString("text");
                                 String duration = j.getJSONObject("duration").getString("text");
 
-                                SmsSender.sendSMS(phoneNumber, firstText + r.getString(R.string.remaining_distance_to) + " " + place.getName() + ": " + distance + ". " + r.getString(R.string.aprox_duration) + " " + duration + ".");
+                                SmsSenderService.sendSMS(phoneNumber, firstText + r.getString(R.string.remaining_distance_to) + " " + place.getName() + ": " + distance + ". " + r.getString(R.string.aprox_duration) + " " + duration + ".");
                                 onNetworkMessageSentListener.onNetworkMessageSent();
                                 return;
                             } catch (Exception e) {
@@ -182,12 +193,20 @@ public class SmsSender implements LocationGetter.OnLocationGetListener {
         });
     }
 
-
-    public interface OnSmsSenderFinishListener {
-        public void onSmsSenderFinish();
-    }
-
     public interface OnNetworkMessageSentListener {
         public void onNetworkMessageSent();
     }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Log.d(TAG, "onCreate()");
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy()");
+        super.onDestroy();
+    }
 }
+

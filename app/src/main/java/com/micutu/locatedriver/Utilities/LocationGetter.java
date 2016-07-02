@@ -31,6 +31,8 @@ public class LocationGetter implements GoogleApiClient.ConnectionCallbacks, Goog
     private OnLocationGetListener onLocationGetListener = null;
     private Location currentLocation = null;
 
+    private Handler handler = null;
+
     public LocationGetter(Context context, OnLocationGetListener listener) {
         this.context = context;
         this.onLocationGetListener = listener;
@@ -51,6 +53,11 @@ public class LocationGetter implements GoogleApiClient.ConnectionCallbacks, Goog
             Log.d(TAG, "DISCONNECT LOCATION UPDATES");
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
             mGoogleApiClient.disconnect();
+        }
+
+        if(handler != null) {
+            Log.d(TAG, "REMOVE TIMEOUTS.");
+            handler.removeCallbacksAndMessages(null);
         }
 
         onLocationGetListener.onLocationGet(location);
@@ -74,24 +81,28 @@ public class LocationGetter implements GoogleApiClient.ConnectionCallbacks, Goog
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
 
-        new Handler().postDelayed(
+        handler = new Handler();
+        handler.postDelayed(
                 new Runnable() {
                     public void run() {
                         Log.d(TAG, "MAX WAIT TIME EXPIRED");
                         sendLocationToListener(currentLocation);
                     }
                 },
-                2 * 60 * 1000);
+                this.LOCATION_REQUEST_MAX_WAIT_TIME);
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d(TAG, "onLocationChanged() " + location.getAccuracy() + " accuracy. " + location.getProvider());
+        Log.d(TAG, "onLocationChanged() " + location.getAccuracy() + " - " + location.getElapsedRealtimeNanos() + " - " + location.getTime() + " - " + location);
+
 
         //the most accurate location
         if (currentLocation == null || location.getAccuracy() < currentLocation.getAccuracy()) {
             currentLocation = location;
         }
+
+        Log.d(TAG, "Diferrence: " + location.getAccuracy() + " - " + currentLocation.getAccuracy());
 
         //send location if is already lower than 100
         if (currentLocation.getAccuracy() < 100) {

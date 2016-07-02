@@ -21,7 +21,7 @@
             android:value="AIzaSyBT36tmLjf0azRAwa-thOfoQ6LWQzWm3xc" />
 
         <receiver
-            android:name=".BroadcastReceivers.OnSmsReceiver"
+            android:name=".BroadcastReceivers.SmsReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter android:priority="999">
@@ -29,6 +29,7 @@
             </intent-filter>
         </receiver>
 
+        <service android:name=".Services.SmsSenderService" android:exported="false"/>
     </application>
 
     <uses-permission android:name="android.permission.SEND_SMS" />

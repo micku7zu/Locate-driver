@@ -8,46 +8,36 @@ import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
-import com.micutu.locatedriver.Utilities.SmsSender;
+import com.micutu.locatedriver.Services.SmsSenderService;
 
 import java.util.ArrayList;
 
-public class OnSmsReceiver extends BroadcastReceiver implements SmsSender.OnSmsSenderFinishListener {
-    private String TAG = OnSmsReceiver.class.getSimpleName();
+public class SmsReceiver extends BroadcastReceiver {
+    private String TAG = SmsReceiver.class.getSimpleName();
 
-    private PendingResult broadcastResult = null;
-
-    public OnSmsReceiver() {
+    public SmsReceiver() {
 
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        broadcastResult = goAsync();
-
         String keyword = PreferenceManager.getDefaultSharedPreferences(context).getString("keyword", "");
 
         if(keyword.length() == 0) {
-            Log.d(TAG, "No keyword available.");
-            broadcastResult.finish();
+            Log.d(TAG, "No keyword available. Exit");
             return;
         }
 
         ArrayList<SmsMessage> list = getMessagesWithKeyword(keyword, intent.getExtras());
 
         if (list.size() == 0) {
-            Log.d(TAG, "No message available.");
-            broadcastResult.finish();
+            Log.d(TAG, "No message available. Exit");
             return;
         }
 
-        SmsSender smsSender = new SmsSender(context, list.get(0).getOriginatingAddress(), this);
-    }
-
-    @Override
-    public void onSmsSenderFinish() {
-        Log.d(TAG, "onSmsSenderFinish()");
-        broadcastResult.finish();
+        Intent newIntent = new Intent(context, SmsSenderService.class);
+        newIntent.putExtra("phoneNumber", list.get(0).getOriginatingAddress());
+        context.startService(newIntent);
     }
 
     private ArrayList<SmsMessage> getMessagesWithKeyword(String keyword, Bundle bundle) {

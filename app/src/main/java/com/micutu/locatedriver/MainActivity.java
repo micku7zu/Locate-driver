@@ -24,7 +24,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.gson.Gson;
-import com.micutu.locatedriver.BroadcastReceivers.OnSmsReceiver;
+import com.micutu.locatedriver.BroadcastReceivers.SmsReceiver;
 import com.micutu.locatedriver.Fragments.LDPlaceAutocompleteFragment;
 import com.micutu.locatedriver.Model.LDPlace;
 
@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void toggleBroadcastReceiver() {
-        ComponentName receiver = new ComponentName(getApplicationContext(), OnSmsReceiver.class);
+        ComponentName receiver = new ComponentName(getApplicationContext(), SmsReceiver.class);
         PackageManager pm = getApplicationContext().getPackageManager();
 
         pm.setComponentEnabledSetting(receiver,
