@@ -1,17 +1,26 @@
 package com.micutu.locatedriver;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.database.Cursor;
+import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.provider.Contacts;
+import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -27,16 +36,12 @@ import com.google.gson.Gson;
 import com.micutu.locatedriver.BroadcastReceivers.SmsReceiver;
 import com.micutu.locatedriver.Fragments.LDPlaceAutocompleteFragment;
 import com.micutu.locatedriver.Model.LDPlace;
+import com.micutu.locatedriver.Services.SmsSenderService;
 
 import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
-    private static final int PERMISSION_RECEIVE_SMS = 0;
-    private static final int PERMISSION_SEND_SMS = 1;
-    private static final int PERMISSION_ACCESS_NETWORK_STATE = 2;
-    private static final int PERMISSION_FINE_LOCATION = 3;
-    private static final int PERMISSION_CORSE_LOCATION = 4;
 
     private Boolean running = null;
     private String keyword = null;
@@ -68,11 +73,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void checkPermissions() {
         ArrayList<String> permissions = new ArrayList();
-        permissions.add(PERMISSION_RECEIVE_SMS, Manifest.permission.RECEIVE_SMS);
-        permissions.add(PERMISSION_SEND_SMS, Manifest.permission.SEND_SMS);
-        permissions.add(PERMISSION_ACCESS_NETWORK_STATE, Manifest.permission.ACCESS_NETWORK_STATE);
-        permissions.add(PERMISSION_FINE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION);
-        permissions.add(PERMISSION_CORSE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION);
+        permissions.add(0, Manifest.permission.RECEIVE_SMS);
+        permissions.add(1, Manifest.permission.SEND_SMS);
+        permissions.add(2, Manifest.permission.ACCESS_NETWORK_STATE);
+        permissions.add(3, Manifest.permission.ACCESS_FINE_LOCATION);
+        permissions.add(4, Manifest.permission.ACCESS_COARSE_LOCATION);
 
         for (int i = 0; i < permissions.size(); i++) {
             if (ContextCompat.checkSelfPermission(this, permissions.get(i)) != PackageManager.PERMISSION_GRANTED) {
@@ -138,7 +143,66 @@ public class MainActivity extends AppCompatActivity {
     private void initApp() {
         initDestinationPlace();
         initRunningButton();
+        initSendLocationButton();
         ((TextView) this.findViewById(R.id.keyword)).setText(this.keyword);
+    }
+
+    private void initSendLocationButton() {
+        Button sendLocationButton = (Button) this.findViewById(R.id.send_button);
+
+        sendLocationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                /* start the contact picker */
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE);
+                startActivityForResult(intent, 1);
+            }
+        });
+    }
+
+    /* read the contact from the contact picker */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (data != null) {
+            Uri uri = data.getData();
+
+            if (uri != null) {
+                Cursor c = null;
+                try {
+                    c = getContentResolver().query(uri, new String[]{
+                                    ContactsContract.CommonDataKinds.Phone.NUMBER,
+                                    ContactsContract.CommonDataKinds.Phone.TYPE},
+                            null, null, null);
+
+                    if (c != null && c.moveToFirst()) {
+                        String number = c.getString(0);
+                        int type = c.getInt(1);
+                        launchService(number);
+                    }
+                } finally {
+                    if (c != null) {
+                        c.close();
+                    }
+                }
+            }
+        }
+    }
+
+    private void launchService(final String number) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setPositiveButton(R.string.send, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                Intent newIntent = new Intent(MainActivity.this, SmsSenderService.class);
+                newIntent.putExtra("phoneNumber", number);
+                MainActivity.this.startService(newIntent);
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, null);
+        builder.setMessage(this.getResources().getString(R.string.are_you_sure) + " " + number + "?");
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     private void initRunningButton() {

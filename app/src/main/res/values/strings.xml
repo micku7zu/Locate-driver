@@ -42,4 +42,7 @@
     <string name="remaining_distance_to">Distance to</string>
     <string name="aprox_duration">Aproximative time left</string>
     <string name="error_getting_location">Error. Can\'t get the location.</string>
+    <string name="cancel">Cancel</string>
+    <string name="send">Send</string>
+    <string name="are_you_sure">Are you sure you want to send your location to</string>
 </resources>
