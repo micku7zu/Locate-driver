@@ -12,7 +12,7 @@
     <string name="send_button">Send location</string>
     <string name="about_text">An Open Source application that automatically shares your location while you drive based on SMS available on Github:\nhttps://github.com/micku7zu/Locate-driver\n\nCopyright © Sergiu Șandor 2016.</string>
     <string name="error_permission">Application needs all the permissions to be granted because without them it can\'t function correctly.</string>
-    <string name="sound_title">Sound</string>
+    <string name="sound_title">Sound (not yet)</string>
     <string name="sound_summary">Notification when keyword was detected.</string>
     <string name="detected_message_title">First message</string>
     <string name="detected_message_summary">Acknowledge that keyword was detected and send current data and GPS status.</string>
@@ -22,4 +22,24 @@
     <string name="google_message_summary">Google maps link with your current location.</string>
     <string name="network_message_title">Forth message</string>
     <string name="network_message_summary">Informations about current address and remaining distance to destination.</string>
+    <string name="acknowledgeMessage">Keyword detected, wait for response.</string>
+    <string name="network">Internet:</string>
+    <string name="gps">GPS:</string>
+    <string name="enabled">enabled</string>
+    <string name="disabled">disabled</string>
+    <string name="location_mode_off">Disabled</string>
+    <string name="location_battery_saving">Approximate</string>
+    <string name="locateion_sensors_only">GPS only</string>
+    <string name="location_high_accuracy">GPS and Network</string>
+    <string name="accuracy">Accuracy:</string>
+    <string name="latitude">Latitude:</string>
+    <string name="longitude">Longitude:</string>
+    <string name="altitude">Altitude:</string>
+    <string name="speed">Speed:</string>
+    <string name="no_network">Internet is disabled, can\'t get address or distance.</string>
+    <string name="address">Address:</string>
+    <string name="no_destination">No destination set.</string>
+    <string name="remaining_distance_to">Distance to</string>
+    <string name="aprox_duration">Aproximative time left</string>
+    <string name="error_getting_location">Error. Can\'t get the location.</string>
 </resources>

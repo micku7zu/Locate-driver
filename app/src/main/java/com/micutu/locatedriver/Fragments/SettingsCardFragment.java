@@ -11,6 +11,7 @@ import android.widget.ListView;
 
 import com.micutu.locatedriver.R;
 
+
 public class SettingsCardFragment extends PreferenceFragment {
 
     @Override

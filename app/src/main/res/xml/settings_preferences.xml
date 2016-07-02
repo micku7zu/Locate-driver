@@ -27,6 +27,7 @@
         android:defaultValue="true"/>
 
     <CheckBoxPreference
+        android:enabled="false"
         android:key="settings_sound"
         android:title="@string/sound_title"
         android:summary="@string/sound_summary"

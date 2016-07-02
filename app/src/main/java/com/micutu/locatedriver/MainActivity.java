@@ -24,20 +24,24 @@ import android.widget.Toast;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.gson.Gson;
 import com.micutu.locatedriver.BroadcastReceivers.SmsReceiver;
 import com.micutu.locatedriver.Fragments.LDPlaceAutocompleteFragment;
+import com.micutu.locatedriver.Model.LDPlace;
 
 import java.util.ArrayList;
+
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_RECEIVE_SMS = 0;
     private static final int PERMISSION_SEND_SMS = 1;
+    private static final int PERMISSION_ACCESS_NETWORK_STATE = 2;
+    private static final int PERMISSION_FINE_LOCATION = 3;
+    private static final int PERMISSION_CORSE_LOCATION = 4;
 
-    public static final String PREFS_NAME = "LocateDriver";
     private Boolean running = null;
     private String keyword = null;
-    private String placeName = null;
-    private String placeId = null;
+    private LDPlace place = null;
 
 
     @Override
@@ -67,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> permissions = new ArrayList();
         permissions.add(PERMISSION_RECEIVE_SMS, Manifest.permission.RECEIVE_SMS);
         permissions.add(PERMISSION_SEND_SMS, Manifest.permission.SEND_SMS);
+        permissions.add(PERMISSION_ACCESS_NETWORK_STATE, Manifest.permission.ACCESS_NETWORK_STATE);
+        permissions.add(PERMISSION_FINE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION);
+        permissions.add(PERMISSION_CORSE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION);
 
         for (int i = 0; i < permissions.size(); i++) {
             if (ContextCompat.checkSelfPermission(this, permissions.get(i)) != PackageManager.PERMISSION_GRANTED) {
@@ -152,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
                 getFragmentManager().findFragmentById(R.id.destination_autocomplete);
 
         destination.setHint(getResources().getString(R.string.destination));
-        destination.setText(this.placeName);
+        destination.setText((this.place == null) ? "" : this.place.getName());
 
         destination.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -179,12 +186,13 @@ public class MainActivity extends AppCompatActivity {
     private void saveData() {
         this.keyword = ((TextView) this.findViewById(R.id.keyword)).getText() + "";
 
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = settings.edit();
         editor.putBoolean("running", this.running);
         editor.putString("keyword", this.keyword);
-        editor.putString("placeName", this.placeName);
-        editor.putString("placeId", this.placeId);
+
+        Gson gson = new Gson();
+        editor.putString("place", gson.toJson(place, LDPlace.class));
 
         editor.commit();
     }
@@ -192,34 +200,22 @@ public class MainActivity extends AppCompatActivity {
     private void restoreSavedData() {
         PreferenceManager.setDefaultValues(this, R.xml.settings_preferences, false);
 
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
 
         this.running = settings.getBoolean("running", false);
         this.keyword = settings.getString("keyword", "");
-        this.placeName = settings.getString("placeName", "");
-        this.placeId = settings.getString("placeId", "");
 
-        if ((this.placeName.length() > 0) != (this.placeId.length() > 0)) {
-            this.placeName = "";
-            this.placeId = "";
-        }
-
-        Log.d("INFO", "Restored settings: ");
-        Log.d("INFO", "Running:" + this.running + ", Keyword: " + this.keyword + ", Place: " + this.placeName + " - " + this.placeId);
+        String json = settings.getString("place", "");
+        Gson gson = new Gson();
+        this.place = gson.fromJson(json, LDPlace.class);
     }
 
     private void setPlace(Place place) {
         if (place == null) {
-            this.placeName = "";
-            this.placeId = "";
+            this.place = null;
         } else {
-            this.setPlace(place.getName() + "", place.getId());
+            this.place = new LDPlace(place.getName() + "", place.getId(), place.getLatLng().latitude, place.getLatLng().longitude);
         }
-    }
-
-    private void setPlace(String placeName, String placeId) {
-        this.placeName = placeName;
-        this.placeId = placeId;
     }
 
     protected void setupToolbar() {

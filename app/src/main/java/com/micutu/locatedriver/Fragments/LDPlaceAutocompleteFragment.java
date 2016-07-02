@@ -10,9 +10,11 @@ import android.widget.EditText;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.micutu.locatedriver.R;
 
+
 public class LDPlaceAutocompleteFragment extends PlaceAutocompleteFragment {
     @Nullable
     private PlaceClearListener placeClearListener = null;
+
 
     public LDPlaceAutocompleteFragment() {
 
@@ -36,6 +38,11 @@ public class LDPlaceAutocompleteFragment extends PlaceAutocompleteFragment {
         return view;
     }
 
+    /**
+     * Sets the autocomplete enabled or disabled.
+     *
+     * @param enabled the enabled
+     */
     public void setEnabled(Boolean enabled) {
         this.getView().setAlpha((enabled) ? 1 : (float) 0.5);
         this.getView().findViewById(R.id.place_autocomplete_clear_button).setEnabled(enabled);
@@ -43,11 +50,22 @@ public class LDPlaceAutocompleteFragment extends PlaceAutocompleteFragment {
         this.getView().findViewById(R.id.place_autocomplete_search_button).setEnabled(enabled);
     }
 
+    /**
+     * Sets on place clear listener.
+     *
+     * @param placeClearListener the place clear listener
+     */
     public void setOnPlaceClearListener(PlaceClearListener placeClearListener) {
         this.placeClearListener = placeClearListener;
     }
 
+    /**
+     * The interface Place clear listener.
+     */
     public interface PlaceClearListener {
+        /**
+         * Run when the clear button is pressed.
+         */
         public void cleared();
     }
 }
