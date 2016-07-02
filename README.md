@@ -1,7 +1,9 @@
 # Locate driver
 An Open Source Android Application that automatically shares your location while you drive based on SMS. 
-All you have to do is to choose a destination and an SMS keyword. When someone sends you an SMS with that keyword, the application will auto respond with your location and ETA to your destination.
 
+All you have to do is to choose a destination, a keyword and to start the application. When someone sends you an SMS with that keyword, the application will auto respond with your location and ETA to your destination.
+
+The application it is battery friendly because it uses a "BroadcastReceiver", which means that the application is not running on the background,. The Android system sends an event when a SMS is received and the application will start in the background. It uses the GPS for a limited time, only to get the location for the response, after that it will close again.
 
 # Screenshots
 <img src="http://i.imgur.com/PoqOmM2.png" width="400">
