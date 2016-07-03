@@ -18,10 +18,6 @@
             </intent-filter>
         </activity>
 
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBT36tmLjf0azRAwa-thOfoQ6LWQzWm3xc" />
-
         <receiver
             android:name=".BroadcastReceivers.SmsReceiver"
             android:enabled="true"
