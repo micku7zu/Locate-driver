@@ -73,11 +73,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void checkPermissions() {
         ArrayList<String> permissions = new ArrayList();
-        permissions.add(0, Manifest.permission.RECEIVE_SMS);
-        permissions.add(1, Manifest.permission.SEND_SMS);
-        permissions.add(2, Manifest.permission.ACCESS_NETWORK_STATE);
-        permissions.add(3, Manifest.permission.ACCESS_FINE_LOCATION);
-        permissions.add(4, Manifest.permission.ACCESS_COARSE_LOCATION);
+        permissions.add(0, Manifest.permission.SEND_SMS);
+        permissions.add(1, Manifest.permission.ACCESS_COARSE_LOCATION);
 
         for (int i = 0; i < permissions.size(); i++) {
             if (ContextCompat.checkSelfPermission(this, permissions.get(i)) != PackageManager.PERMISSION_GRANTED) {
