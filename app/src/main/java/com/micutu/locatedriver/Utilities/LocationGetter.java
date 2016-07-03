@@ -10,7 +10,6 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -47,16 +46,16 @@ public class LocationGetter implements GoogleApiClient.ConnectionCallbacks, Goog
     }
 
     private void sendLocationToListener(Location location) {
-        Log.d(TAG, "sendLocationToListener");
+        //Log.d(TAG, "sendLocationToListener");
 
         if(mGoogleApiClient.isConnected()) {
-            Log.d(TAG, "DISCONNECT LOCATION UPDATES");
+            //Log.d(TAG, "DISCONNECT LOCATION UPDATES");
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
             mGoogleApiClient.disconnect();
         }
 
         if(handler != null) {
-            Log.d(TAG, "REMOVE TIMEOUTS.");
+            //Log.d(TAG, "REMOVE TIMEOUTS.");
             handler.removeCallbacksAndMessages(null);
         }
 
@@ -65,10 +64,10 @@ public class LocationGetter implements GoogleApiClient.ConnectionCallbacks, Goog
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.d(TAG, "onConnected()");
+        //Log.d(TAG, "onConnected()");
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.d(TAG, "Permission check error.");
+            //Log.d(TAG, "Permission check error.");
             sendLocationToListener(null);
             return;
         }
@@ -85,7 +84,7 @@ public class LocationGetter implements GoogleApiClient.ConnectionCallbacks, Goog
         handler.postDelayed(
                 new Runnable() {
                     public void run() {
-                        Log.d(TAG, "MAX WAIT TIME EXPIRED");
+                        //Log.d(TAG, "MAX WAIT TIME EXPIRED");
                         sendLocationToListener(currentLocation);
                     }
                 },
@@ -94,7 +93,7 @@ public class LocationGetter implements GoogleApiClient.ConnectionCallbacks, Goog
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d(TAG, "onLocationChanged() " + location.getAccuracy() + " - " + location.getElapsedRealtimeNanos() + " - " + location.getTime() + " - " + location);
+        //Log.d(TAG, "onLocationChanged() " + location.getAccuracy() + " - " + location.getElapsedRealtimeNanos() + " - " + location.getTime() + " - " + location);
 
 
         //the most accurate location
@@ -102,7 +101,7 @@ public class LocationGetter implements GoogleApiClient.ConnectionCallbacks, Goog
             currentLocation = location;
         }
 
-        Log.d(TAG, "Diferrence: " + location.getAccuracy() + " - " + currentLocation.getAccuracy());
+        //Log.d(TAG, "Diferrence: " + location.getAccuracy() + " - " + currentLocation.getAccuracy());
 
         //send location if is already lower than 100
         if (currentLocation.getAccuracy() < 100) {
@@ -112,13 +111,13 @@ public class LocationGetter implements GoogleApiClient.ConnectionCallbacks, Goog
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.d(TAG, "CONNECTION SUSPENDED");
+        //Log.d(TAG, "CONNECTION SUSPENDED");
         sendLocationToListener(currentLocation);
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.d(TAG, "CONNECTION FAILED");
+        //Log.d(TAG, "CONNECTION FAILED");
         sendLocationToListener(null);
     }
 

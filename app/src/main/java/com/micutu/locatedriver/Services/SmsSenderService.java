@@ -8,7 +8,6 @@ import android.content.res.Resources;
 import android.location.Location;
 import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.micutu.locatedriver.Model.LDPlace;
@@ -40,11 +39,11 @@ public class SmsSenderService extends IntentService implements LocationGetter.On
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.d(TAG, "onHandleIntent");
+        //Log.d(TAG, "onHandleIntent");
         this.phoneNumber = intent.getExtras().getString("phoneNumber");
 
         if (this.phoneNumber.length() == 0) {
-            Log.d(TAG, "Phonenumber empty, return.");
+            //Log.d(TAG, "Phonenumber empty, return.");
             return;
         }
 
@@ -55,7 +54,7 @@ public class SmsSenderService extends IntentService implements LocationGetter.On
 
 
     private void initSending() {
-        Log.d(TAG, "initSending()");
+        //Log.d(TAG, "initSending()");
         readSettings();
 
         if (keywordReceivedSms) {
@@ -67,10 +66,10 @@ public class SmsSenderService extends IntentService implements LocationGetter.On
 
     @Override
     public void onLocationGet(Location location) {
-        Log.d(TAG, "onLocationGet " + location);
+        //Log.d(TAG, "onLocationGet " + location);
 
         if(alreadySentFlag) { //for protection
-            Log.d(TAG, "ALREADY SENT, CEVA SE INTAMPLA!!!");
+            //Log.d(TAG, "ALREADY SENT, CEVA SE INTAMPLA!!!");
             return;
         }
         alreadySentFlag = true;
@@ -96,7 +95,7 @@ public class SmsSenderService extends IntentService implements LocationGetter.On
         this.sendNetworkMessage(phoneNumber, location, place, new OnNetworkMessageSentListener() {
             @Override
             public void onNetworkMessageSent() {
-                Log.d(TAG, "on Network Message Sent");
+                //Log.d(TAG, "on Network Message Sent");
             }
         });
     }
@@ -133,7 +132,7 @@ public class SmsSenderService extends IntentService implements LocationGetter.On
     }
 
     public void sendLocationMessage(String phoneNumber, Location location) {
-        Log.d(TAG, "sendLocationMessage()" + location.getAccuracy());
+        //Log.d(TAG, "sendLocationMessage()" + location.getAccuracy());
         Resources r = context.getResources();
         String text = r.getString(R.string.accuracy) + " " + location.getAccuracy() + "m\n";
         text += r.getString(R.string.latitude) + " " + location.getLatitude() + "\n";
@@ -143,13 +142,13 @@ public class SmsSenderService extends IntentService implements LocationGetter.On
     }
 
     public void sendGoogleMapsMessage(String phoneNumber, Location location) {
-        Log.d(TAG, "sendGoogleMapsMessage() " + location.getAccuracy());
+        //Log.d(TAG, "sendGoogleMapsMessage() " + location.getAccuracy());
         String text = "https://maps.google.com/maps?q=" + location.getLatitude() + "," + location.getLongitude();
         SmsSenderService.sendSMS(phoneNumber, text);
     }
 
     public void sendNetworkMessage(final String phoneNumber, final Location location, final LDPlace place, final OnNetworkMessageSentListener onNetworkMessageSentListener) {
-        Log.d(TAG, "sendNetworkMessage() " + location.getAccuracy());
+        //Log.d(TAG, "sendNetworkMessage() " + location.getAccuracy());
         if (!Network.isNetworkAvailable(context)) {
             SmsSenderService.sendSMS(phoneNumber, r.getString(R.string.no_network));
             onNetworkMessageSentListener.onNetworkMessageSent();
@@ -200,12 +199,12 @@ public class SmsSenderService extends IntentService implements LocationGetter.On
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "onCreate()");
+        //Log.d(TAG, "onCreate()");
     }
 
     @Override
     public void onDestroy() {
-        Log.d(TAG, "onDestroy()");
+        //Log.d(TAG, "onDestroy()");
         super.onDestroy();
     }
 }

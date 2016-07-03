@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
-import android.util.Log;
 
 import com.micutu.locatedriver.Services.SmsSenderService;
 
@@ -24,14 +23,14 @@ public class SmsReceiver extends BroadcastReceiver {
         String keyword = PreferenceManager.getDefaultSharedPreferences(context).getString("keyword", "");
 
         if(keyword.length() == 0) {
-            Log.d(TAG, "No keyword available. Exit");
+            //Log.d(TAG, "No keyword available. Exit");
             return;
         }
 
         ArrayList<SmsMessage> list = getMessagesWithKeyword(keyword, intent.getExtras());
 
         if (list.size() == 0) {
-            Log.d(TAG, "No message available. Exit");
+            //Log.d(TAG, "No message available. Exit");
             return;
         }
 
