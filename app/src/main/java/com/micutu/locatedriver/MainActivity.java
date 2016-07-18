@@ -20,6 +20,8 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -103,15 +105,6 @@ public class MainActivity extends AppCompatActivity {
     private void updateUI() {
         ((Button) this.findViewById(R.id.running_button)).setText((running) ? getResources().getString(R.string.stop) : getResources().getString(R.string.start));
         ((Button) this.findViewById(R.id.running_button)).setBackgroundTintList(ColorStateList.valueOf(getResources().getColor((running) ? R.color.colorAccent : R.color.colorPrimary)));
-
-        EditText keywordInput = (EditText) this.findViewById(R.id.keyword);
-        keywordInput.setEnabled(!running);
-
-        LDPlaceAutocompleteFragment destination = (LDPlaceAutocompleteFragment)
-                getFragmentManager().findFragmentById(R.id.destination_autocomplete);
-
-        destination.setEnabled(!running);
-
     }
 
     private void toggleRunning() {
@@ -141,7 +134,37 @@ public class MainActivity extends AppCompatActivity {
         initDestinationPlace();
         initRunningButton();
         initSendLocationButton();
-        ((TextView) this.findViewById(R.id.keyword)).setText(this.keyword);
+        initKeywordInput();
+    }
+
+    private void initKeywordInput() {
+        final TextView keywordInput = (TextView) this.findViewById(R.id.keyword);
+        keywordInput.setText(this.keyword);
+
+        keywordInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (keywordInput.getText().length() == 0) {
+                    MainActivity.this.stop();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+    }
+
+    private void stop() {
+        if (this.running) {
+            this.toggleRunning();
+        }
     }
 
     private void initSendLocationButton() {
@@ -276,6 +299,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             this.place = new LDPlace(place.getName() + "", place.getId(), place.getLatLng().latitude, place.getLatLng().longitude);
         }
+
+        this.saveData();
     }
 
     protected void setupToolbar() {

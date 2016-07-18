@@ -18,8 +18,10 @@ import com.micutu.locatedriver.Utilities.Network;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 public class SmsSenderService extends IntentService implements LocationGetter.OnLocationGetListener {
-    private String TAG = SmsSenderService.class.getSimpleName();
+    private final static String TAG = SmsSenderService.class.getSimpleName();
 
     private Resources r = null;
     private Context context = null;
@@ -68,12 +70,11 @@ public class SmsSenderService extends IntentService implements LocationGetter.On
     public void onLocationGet(Location location) {
         //Log.d(TAG, "onLocationGet " + location);
 
-        if(alreadySentFlag) { //for protection
+        if (alreadySentFlag) { //for protection
             //Log.d(TAG, "ALREADY SENT, CEVA SE INTAMPLA!!!");
             return;
         }
         alreadySentFlag = true;
-
 
         if (location == null) {
             this.sendSMS(phoneNumber, r.getString(R.string.error_getting_location));
@@ -114,8 +115,10 @@ public class SmsSenderService extends IntentService implements LocationGetter.On
     }
 
     public static void sendSMS(String phoneNumber, String message) {
+        //Log.d(TAG, "Send SMS: " + phoneNumber + ", " + message);
         SmsManager smsManager = SmsManager.getDefault();
-        smsManager.sendTextMessage(phoneNumber, null, message, null, null);
+        ArrayList<String> parts = smsManager.divideMessage(message);
+        smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
     }
 
     public String booleanToString(Boolean enabled) {
@@ -149,6 +152,7 @@ public class SmsSenderService extends IntentService implements LocationGetter.On
 
     public void sendNetworkMessage(final String phoneNumber, final Location location, final LDPlace place, final OnNetworkMessageSentListener onNetworkMessageSentListener) {
         //Log.d(TAG, "sendNetworkMessage() " + location.getAccuracy());
+
         if (!Network.isNetworkAvailable(context)) {
             SmsSenderService.sendSMS(phoneNumber, r.getString(R.string.no_network));
             onNetworkMessageSentListener.onNetworkMessageSent();
@@ -156,9 +160,11 @@ public class SmsSenderService extends IntentService implements LocationGetter.On
         }
 
 
+        //Log.d(TAG, "STARTED NETWORK REQUEST");
         Network.get("https://maps.googleapis.com/maps/api/geocode/json?latlng=" + location.getLatitude() + "," + location.getLongitude(), new Network.OnGetFinishListener() {
             @Override
             public void onGetFinish(String result) {
+                //Log.d(TAG, "RESULT ARRIVED");
                 try {
                     final String address = new JSONObject(result).getJSONArray("results").getJSONObject(0).getString("formatted_address");
                     final String firstText = r.getString(R.string.address) + " " + address + ". ";
@@ -181,12 +187,14 @@ public class SmsSenderService extends IntentService implements LocationGetter.On
                                 onNetworkMessageSentListener.onNetworkMessageSent();
                                 return;
                             } catch (Exception e) {
+                                //Log.d(TAG, "EXCEPTION E: " + e.getMessage());
                                 e.printStackTrace();
                             }
                         }
                     });
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    //Log.d(TAG, "JSON EXCEPTION");
                 }
             }
         });

@@ -12,7 +12,7 @@ import com.micutu.locatedriver.Services.SmsSenderService;
 import java.util.ArrayList;
 
 public class SmsReceiver extends BroadcastReceiver {
-    private String TAG = SmsReceiver.class.getSimpleName();
+    private final static String TAG = SmsReceiver.class.getSimpleName();
 
     public SmsReceiver() {
 

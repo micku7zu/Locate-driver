@@ -19,7 +19,7 @@ import com.google.android.gms.location.LocationServices;
 import com.micutu.locatedriver.R;
 
 public class LocationGetter implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
-    private String TAG = LocationGetter.class.getSimpleName();
+    private final static String TAG = LocationGetter.class.getSimpleName();
 
     public final static int LOCATION_REQUEST_INTERVAL = 1000 * 10;
     public final static int LOCATION_REQUEST_FASTEST_INTERVAL = 1000;
