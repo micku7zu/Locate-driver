@@ -15,14 +15,14 @@
     <string name="sound_title">Sound (not yet)</string>
     <string name="sound_summary">Notification when keyword was detected.</string>
     <string name="detected_message_title">First message</string>
-    <string name="detected_message_summary">Acknowledge that keyword was detected and send current data and GPS status.</string>
+    <string name="detected_message_summary">Acknowledge that keyword was detected and send mobile data and GPS status.</string>
     <string name="gps_message_title">Second message</string>
-    <string name="gps_message_summary">GPS informations: lat, long, speed, accuracy.</string>
+    <string name="gps_message_summary">GPS informations: Accuracy, Latitude, Longitude, Speed, Altitude.</string>
     <string name="google_message_title">Third message</string>
     <string name="google_message_summary">Google maps link with your current location.</string>
     <string name="network_message_title">Forth message</string>
     <string name="network_message_summary">Informations about current address and remaining distance to destination.</string>
-    <string name="acknowledgeMessage">Keyword detected, wait for response.</string>
+    <string name="acknowledgeMessage">Wait max 60 seconds for response.</string>
     <string name="network">Internet:</string>
     <string name="gps">GPS:</string>
     <string name="enabled">enabled</string>
@@ -45,4 +45,7 @@
     <string name="cancel">Cancel</string>
     <string name="send">Send</string>
     <string name="are_you_sure">Are you sure you want to send your location to</string>
+    <string name="approximate">Approximate</string>
+    <string name="accurate">Accurate</string>
+    <string name="no_speed_or_altitude">No speed or altitude.</string>
 </resources>
