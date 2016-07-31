@@ -40,6 +40,7 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
     private boolean gpsSms = false;
     private boolean googleMapsSms = false;
     private boolean networkSms = false;
+    private int speedType = 0;
 
     private boolean alreadySentFlag = false;
 
@@ -175,6 +176,7 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
         gpsSms = settings.getBoolean("settings_gps_sms", false);
         googleMapsSms = settings.getBoolean("settings_google_sms", false);
         networkSms = settings.getBoolean("settings_network_sms", false);
+        speedType = Integer.parseInt(settings.getString("settings_kmh_or_mph", "0"));
 
         String json = settings.getString("place", "");
         Gson gson = new Gson();
@@ -201,6 +203,14 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
         SmsSenderService.sendSMS(phoneNumber, text);
     }
 
+    public double convertMPStoKMH(double speed) {
+        return speed * 3.6;
+    }
+
+    public double convertMPStoMPH(double speed) {
+        return speed * 2.23694;
+    }
+
     public void sendLocationMessage(String phoneNumber, Location location) {
         //Log.d(TAG, "sendLocationMessage()" + location.getAccuracy());
         Resources r = context.getResources();
@@ -210,14 +220,18 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
 
         text += r.getString(R.string.accuracy) + " " + location.getAccuracy() + "m\n";
         text += r.getString(R.string.latitude) + " " + location.getLatitude() + "\n";
-        text += r.getString(R.string.longitude) + " " + location.getLongitude() + "\n";
+        text += r.getString(R.string.longitude) + " " + location.getLongitude() + "";
 
         if (location.hasSpeed()) {
-            text += r.getString(R.string.speed) + " " + location.getSpeed() + "KM/H\n";
+            if (speedType == 0) {
+                text += "\n" + r.getString(R.string.speed) + " " + convertMPStoKMH(location.getSpeed()) + "KM/H";
+            } else {
+                text += "\n" + r.getString(R.string.speed) + " " + convertMPStoMPH(location.getSpeed()) + "MPH";
+            }
         }
 
         if (location.hasAltitude() && location.getAltitude() != 0) {
-            text += r.getString(R.string.altitude) + " " + location.getAltitude() + "m";
+            text += "\n" + r.getString(R.string.altitude) + " " + location.getAltitude() + "m";
         }
 
         SmsSenderService.sendSMS(phoneNumber, text);

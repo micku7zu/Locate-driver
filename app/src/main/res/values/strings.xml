@@ -48,4 +48,5 @@
     <string name="approximate">Approximate</string>
     <string name="accurate">Accurate</string>
     <string name="no_speed_or_altitude">No speed or altitude.</string>
+    <string name="settings_kmh_or_mph_string">Speed unit settings</string>
 </resources>

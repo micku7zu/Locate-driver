@@ -1,6 +1,7 @@
 package com.micutu.locatedriver.Fragments;
 
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.util.Log;
@@ -44,7 +45,11 @@ public class SettingsCardFragment extends PreferenceFragment {
         viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                parent.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    parent.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                } else {
+                    parent.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                }
 
                 int width = parent.getWidth() - listView.getPaddingLeft() - listView.getPaddingRight();
 
