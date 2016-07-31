@@ -19,6 +19,7 @@ import com.micutu.locatedriver.Utilities.Network;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import io.nlopez.smartlocation.OnLocationUpdatedListener;
@@ -211,27 +212,31 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
         return speed * 2.23694;
     }
 
+
     public void sendLocationMessage(String phoneNumber, Location location) {
         //Log.d(TAG, "sendLocationMessage()" + location.getAccuracy());
         Resources r = context.getResources();
         Boolean fused = isLocationFused(location);
 
+        DecimalFormat latAndLongFormat = new DecimalFormat("#.######");
+
         String text = r.getString(fused ? R.string.approximate : R.string.accurate) + " location:\n";
 
-        text += r.getString(R.string.accuracy) + " " + location.getAccuracy() + "m\n";
-        text += r.getString(R.string.latitude) + " " + location.getLatitude() + "\n";
-        text += r.getString(R.string.longitude) + " " + location.getLongitude() + "";
+
+        text += r.getString(R.string.accuracy) + " " + Math.round(location.getAccuracy()) + "m\n";
+        text += r.getString(R.string.latitude) + " " + latAndLongFormat.format(location.getLatitude()) + "\n";
+        text += r.getString(R.string.longitude) + " " + latAndLongFormat.format(location.getLongitude()) + "";
 
         if (location.hasSpeed()) {
             if (speedType == 0) {
-                text += "\n" + r.getString(R.string.speed) + " " + convertMPStoKMH(location.getSpeed()) + "KM/H";
+                text += "\n" + r.getString(R.string.speed) + " " + ((int) convertMPStoKMH(location.getSpeed())) + "KM/H";
             } else {
-                text += "\n" + r.getString(R.string.speed) + " " + convertMPStoMPH(location.getSpeed()) + "MPH";
+                text += "\n" + r.getString(R.string.speed) + " " + ((int) convertMPStoMPH(location.getSpeed())) + "MPH";
             }
         }
 
         if (location.hasAltitude() && location.getAltitude() != 0) {
-            text += "\n" + r.getString(R.string.altitude) + " " + location.getAltitude() + "m";
+            text += "\n" + r.getString(R.string.altitude) + " " + ((int) location.getAltitude()) + "m";
         }
 
         SmsSenderService.sendSMS(phoneNumber, text);
