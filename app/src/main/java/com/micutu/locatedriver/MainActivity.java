@@ -1,7 +1,5 @@
 package com.micutu.locatedriver;
 
-import android.Manifest;
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,25 +9,18 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.preference.PreferenceManager;
-import android.provider.Contacts;
 import android.provider.ContactsContract;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.TintableBackgroundView;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,8 +33,7 @@ import com.micutu.locatedriver.BroadcastReceivers.SmsReceiver;
 import com.micutu.locatedriver.Fragments.LDPlaceAutocompleteFragment;
 import com.micutu.locatedriver.Model.LDPlace;
 import com.micutu.locatedriver.Services.SmsSenderService;
-
-import java.util.ArrayList;
+import com.micutu.locatedriver.Utilities.Permissions;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -56,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        checkPermissions(); //check marshmallow permissions
+        Permissions.checkAndRequestPermissions(this); //check marshmallow permissions
         setContentView(R.layout.activity_main);
         restoreSavedData(); //restore keyword, destination, running
         setupToolbar();
@@ -74,25 +64,6 @@ public class MainActivity extends AppCompatActivity {
                 scrollView.scrollTo(0, 0);
             }
         });
-    }
-
-    private void checkPermissions() {
-        ArrayList<String> permissions = new ArrayList();
-        permissions.add(0, Manifest.permission.SEND_SMS);
-        permissions.add(1, Manifest.permission.ACCESS_COARSE_LOCATION);
-
-        for (int i = 0; i < permissions.size(); i++) {
-            if (ContextCompat.checkSelfPermission(this, permissions.get(i)) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{permissions.get(i)}, i);
-            }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_DENIED) {
-            Toast.makeText(getApplicationContext(), getResources().getString(R.string.error_permission), Toast.LENGTH_SHORT).show();
-        }
     }
 
     private void clearFocus() {
@@ -116,6 +87,12 @@ public class MainActivity extends AppCompatActivity {
         if (currentKeyword.length() == 0 && this.running == false) {
             //can't start application with no keyword
             Toast.makeText(getApplicationContext(), getResources().getString(R.string.error_no_keyword), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (this.running == false && !Permissions.haveSendSMSAndLocationPermission(MainActivity.this)) {
+            Permissions.requestSendSMSAndLocationPermission(MainActivity.this);
+            Toast.makeText(getApplicationContext(), R.string.send_sms_and_location_permission, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -178,6 +155,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 /* start the contact picker */
+
+                if (!Permissions.haveReadContactsPermission(MainActivity.this)) {
+                    Permissions.requestContactsPermission(MainActivity.this);
+                    Toast.makeText(getApplicationContext(), R.string.read_contacts_permission, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (!Permissions.haveSendSMSAndLocationPermission(MainActivity.this)) {
+                    Permissions.requestSendSMSAndLocationPermission(MainActivity.this);
+                    Toast.makeText(getApplicationContext(), R.string.send_sms_and_location_permission, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE);
                 startActivityForResult(intent, 1);
@@ -218,6 +208,13 @@ public class MainActivity extends AppCompatActivity {
 
         builder.setPositiveButton(R.string.send, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
+
+                if (!Permissions.haveSendSMSAndLocationPermission(MainActivity.this)) {
+                    Permissions.requestSendSMSAndLocationPermission(MainActivity.this);
+                    Toast.makeText(getApplicationContext(), R.string.send_sms_and_location_permission, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 Intent newIntent = new Intent(MainActivity.this, SmsSenderService.class);
                 newIntent.putExtra("phoneNumber", number);
                 MainActivity.this.startService(newIntent);

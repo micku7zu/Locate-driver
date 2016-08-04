@@ -49,4 +49,8 @@
     <string name="accurate">Accurate</string>
     <string name="no_speed_or_altitude">No speed or altitude.</string>
     <string name="settings_kmh_or_mph_string">Speed unit settings</string>
+    <string name="read_contacts_permission">Can\'t select a contact without Read Contacts permission.</string>
+    <string name="send_sms_and_location_permission">SMS and Location permission needed.</string>
+    <string name="notification_title">Locate driver not working</string>
+    <string name="notification_content">SMS and Location permissions needed.</string>
 </resources>

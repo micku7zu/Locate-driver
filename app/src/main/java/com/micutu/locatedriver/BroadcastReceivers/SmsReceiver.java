@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
+import android.widget.Toast;
 
+import com.micutu.locatedriver.R;
 import com.micutu.locatedriver.Services.SmsSenderService;
+import com.micutu.locatedriver.Utilities.Permissions;
 
 import java.util.ArrayList;
 
@@ -22,7 +25,7 @@ public class SmsReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String keyword = PreferenceManager.getDefaultSharedPreferences(context).getString("keyword", "");
 
-        if(keyword.length() == 0) {
+        if (keyword.length() == 0) {
             //Log.d(TAG, "No keyword available. Exit");
             return;
         }
@@ -31,6 +34,16 @@ public class SmsReceiver extends BroadcastReceiver {
 
         if (list.size() == 0) {
             //Log.d(TAG, "No message available. Exit");
+            return;
+        }
+
+        if (!Permissions.haveSendSMSAndLocationPermission(context)) {
+            try {
+                Permissions.setPermissionNotification(context);
+            } catch (Exception e) {
+                Toast.makeText(context, R.string.send_sms_and_location_permission, Toast.LENGTH_SHORT).show();
+            }
+
             return;
         }
 
