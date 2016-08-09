@@ -1,6 +1,7 @@
 package com.micutu.locatedriver.Services;
 
 import android.app.IntentService;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -184,13 +185,6 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
         this.place = gson.fromJson(json, LDPlace.class);
     }
 
-    public static void sendSMS(String phoneNumber, String message) {
-        //Log.d(TAG, "Send SMS: " + phoneNumber + ", " + message);
-        SmsManager smsManager = SmsManager.getDefault();
-        ArrayList<String> parts = smsManager.divideMessage(message);
-        smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);
-    }
-
     public String booleanToString(Boolean enabled) {
         return (enabled) ? context.getResources().getString(R.string.enabled) :
                 context.getResources().getString(R.string.disabled);
@@ -201,7 +195,7 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
         String text = r.getString(R.string.acknowledgeMessage);
         text += " " + r.getString(R.string.network) + " " + this.booleanToString(Network.isNetworkAvailable(context));
         text += ", " + r.getString(R.string.gps) + " " + this.locationToString(context, this.getLocationMode(context));
-        SmsSenderService.sendSMS(phoneNumber, text);
+        SmsSenderService.this.sendSMS(phoneNumber, text);
     }
 
     public double convertMPStoKMH(double speed) {
@@ -239,13 +233,13 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
             text += "\n" + r.getString(R.string.altitude) + " " + ((int) location.getAltitude()) + "m";
         }
 
-        SmsSenderService.sendSMS(phoneNumber, text);
+        SmsSenderService.this.sendSMS(phoneNumber, text);
     }
 
     public void sendGoogleMapsMessage(String phoneNumber, Location location) {
         //Log.d(TAG, "sendGoogleMapsMessage() " + location.getAccuracy());
         String text = "https://maps.google.com/maps?q=" + location.getLatitude() + "," + location.getLongitude();
-        SmsSenderService.sendSMS(phoneNumber, text);
+        SmsSenderService.this.sendSMS(phoneNumber, text);
     }
 
 
@@ -254,7 +248,7 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
         //Log.d(TAG, "sendNetworkMessage() " + location.getAccuracy());
 
         if (!Network.isNetworkAvailable(context)) {
-            SmsSenderService.sendSMS(phoneNumber, r.getString(R.string.no_network));
+            SmsSenderService.this.sendSMS(phoneNumber, r.getString(R.string.no_network));
             onNetworkMessageSentListener.onNetworkMessageSent();
             return;
         }
@@ -270,7 +264,7 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
                     final String firstText = r.getString(R.string.address) + " " + address + ". ";
 
                     if (place == null) {
-                        SmsSenderService.sendSMS(phoneNumber, firstText + r.getString(R.string.no_destination));
+                        SmsSenderService.this.sendSMS(phoneNumber, firstText + r.getString(R.string.no_destination));
                         onNetworkMessageSentListener.onNetworkMessageSent();
                         return;
                     }
@@ -283,7 +277,7 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
                                 String distance = j.getJSONObject("distance").getString("text");
                                 String duration = j.getJSONObject("duration").getString("text");
 
-                                SmsSenderService.sendSMS(phoneNumber, firstText + r.getString(R.string.remaining_distance_to) + " " + place.getName() + ": " + distance + ". " + r.getString(R.string.aprox_duration) + " " + duration + ".");
+                                SmsSenderService.this.sendSMS(phoneNumber, firstText + r.getString(R.string.remaining_distance_to) + " " + place.getName() + ": " + distance + ". " + r.getString(R.string.aprox_duration) + " " + duration + ".");
                                 onNetworkMessageSentListener.onNetworkMessageSent();
                                 return;
                             } catch (Exception e) {
@@ -337,6 +331,17 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
             default:
                 return "Error";
         }
+    }
+
+    public void sendSMS(String phoneNumber, String message) {
+        //Log.d(TAG, "Send SMS: " + phoneNumber + ", " + message);
+        //on samsung intents can't be null. the messages are not sent if intents are null
+        ArrayList<PendingIntent> samsungFix = new ArrayList<>();
+        samsungFix.add(PendingIntent.getBroadcast(context, 0, new Intent("SMS_RECEIVED"), 0));
+
+        SmsManager smsManager = SmsManager.getDefault();
+        ArrayList<String> parts = smsManager.divideMessage(message);
+        smsManager.sendMultipartTextMessage(phoneNumber, null, parts, samsungFix, samsungFix);
     }
 }
 

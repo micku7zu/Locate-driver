@@ -3,6 +3,7 @@ package com.micutu.locatedriver.BroadcastReceivers;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
@@ -23,6 +24,8 @@ public class SmsReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Toast.makeText(context, "ONRECEIVE: " + intent.getAction(), Toast.LENGTH_SHORT).show();
+
         String keyword = PreferenceManager.getDefaultSharedPreferences(context).getString("keyword", "");
 
         if (keyword.length() == 0) {
@@ -30,7 +33,12 @@ public class SmsReceiver extends BroadcastReceiver {
             return;
         }
 
-        ArrayList<SmsMessage> list = getMessagesWithKeyword(keyword, intent.getExtras());
+        ArrayList<SmsMessage> list = null;
+        try {
+            list = getMessagesWithKeyword(keyword, intent.getExtras());
+        } catch (Exception e) {
+            return;
+        }
 
         if (list.size() == 0) {
             //Log.d(TAG, "No message available. Exit");
@@ -57,7 +65,14 @@ public class SmsReceiver extends BroadcastReceiver {
         if (bundle != null) {
             Object[] pdus = (Object[]) bundle.get("pdus");
             for (int i = 0; i < pdus.length; i++) {
-                SmsMessage sms = SmsMessage.createFromPdu((byte[]) pdus[i]);
+                SmsMessage sms = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    String format = bundle.getString("format");
+                    sms = SmsMessage.createFromPdu((byte[]) pdus[i], format);
+                } else {
+                    sms = SmsMessage.createFromPdu((byte[]) pdus[i]);
+                }
+
                 if (sms.getMessageBody().toString().equals(keyword)) {
                     list.add(sms);
                 }
