@@ -24,8 +24,6 @@ public class SmsReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Toast.makeText(context, "ONRECEIVE: " + intent.getAction(), Toast.LENGTH_SHORT).show();
-
         String keyword = PreferenceManager.getDefaultSharedPreferences(context).getString("keyword", "");
 
         if (keyword.length() == 0) {
