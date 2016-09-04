@@ -26,16 +26,29 @@ public class Permissions {
         permissions.add(1, Manifest.permission.ACCESS_FINE_LOCATION);
         permissions.add(2, Manifest.permission.READ_CONTACTS);
 
+        ArrayList<String> neededPermissions = new ArrayList<>();
         for (int i = 0; i < permissions.size(); i++) {
             if (ContextCompat.checkSelfPermission(activity, permissions.get(i)) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(activity, new String[]{permissions.get(i)}, i);
+                neededPermissions.add(permissions.get(i));
             }
         }
+
+        if(neededPermissions.size() == 0) {
+            return;
+        }
+
+        String[] arr = new String[neededPermissions.size()];
+        arr = neededPermissions.toArray(arr);
+
+        if(arr == null) {
+            return;
+        }
+
+        ActivityCompat.requestPermissions(activity, arr, 1);
     }
 
     public static void requestSendSMSAndLocationPermission(Activity activity) {
-        ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.SEND_SMS}, 2);
-        ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 2);
+        ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.SEND_SMS, Manifest.permission.ACCESS_FINE_LOCATION}, 2);
     }
 
     public static void requestContactsPermission(Activity activity) {
