@@ -15,6 +15,9 @@ import com.micutu.locatedriver.Utilities.Permissions;
 
 import java.util.ArrayList;
 
+import static com.micutu.locatedriver.Services.SmsSenderService.SMS_TYPE_KEY;
+import static com.micutu.locatedriver.Services.SmsSenderService.SMS_TYPE_SEND_LOCATION;
+
 public class SmsReceiver extends BroadcastReceiver {
     private final static String TAG = SmsReceiver.class.getSimpleName();
 
@@ -54,7 +57,8 @@ public class SmsReceiver extends BroadcastReceiver {
         }
 
         Intent newIntent = new Intent(context, SmsSenderService.class);
-        newIntent.putExtra("phoneNumber", list.get(0).getOriginatingAddress());
+        newIntent.putExtra(SMS_TYPE_KEY, SMS_TYPE_SEND_LOCATION);
+        newIntent.putExtra(SmsSenderService.PHONE_NUMBER_KEY, list.get(0).getOriginatingAddress());
         context.startService(newIntent);
     }
 

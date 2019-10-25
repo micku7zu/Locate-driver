@@ -8,13 +8,17 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.BatteryManager;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.telephony.SmsManager;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.micutu.locatedriver.Model.LDPlace;
 import com.micutu.locatedriver.R;
+import com.micutu.locatedriver.Utilities.Constants;
 import com.micutu.locatedriver.Utilities.Network;
 
 import org.json.JSONException;
@@ -29,9 +33,14 @@ import io.nlopez.smartlocation.location.config.LocationParams;
 import io.nlopez.smartlocation.location.providers.LocationGooglePlayServicesWithFallbackProvider;
 
 public class SmsSenderService extends IntentService implements OnLocationUpdatedListener {
+    public static final String PHONE_NUMBER_KEY = "phoneNumber";
+    public static final String SMS_TYPE_KEY = "sms_type";
+    public static final String SMS_TYPE_SEND_LOCATION = "send_location";
+    public static final String SMS_TYPE_SEND_CHARGING_STOPPED_WARNING = "send_charging_stopped_warning";
+    public static final String SMS_TYPE_SEND_LOW_BATTERY_WARNING = "send_low_battery_warning";
     private final static String TAG = SmsSenderService.class.getSimpleName();
-
     private final static int LOCATION_REQUEST_MAX_WAIT_TIME = 60;
+    protected static final int ONE_HOUR_MS = 3600000;
 
     private Resources r = null;
     private Context context = null;
@@ -53,10 +62,41 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
         super("SmsSenderService");
     }
 
+    public static boolean isLocationFused(Location location) {
+        return !location.hasAltitude() || !location.hasSpeed() || location.getAltitude() == 0;
+    }
+
+    public static int getLocationMode(Context context) {
+        try {
+            return Settings.Secure.getInt(context.getContentResolver(), Settings.Secure
+                    .LOCATION_MODE);
+        } catch (Settings.SettingNotFoundException e) {
+            return -1;
+        }
+    }
+
+    public static String locationToString(Context context, int mode) {
+        switch (mode) {
+            case Settings.Secure.LOCATION_MODE_OFF:
+                return context.getResources().getString(R.string.location_mode_off);
+            case Settings.Secure.LOCATION_MODE_BATTERY_SAVING:
+                return context.getResources().getString(R.string.location_battery_saving);
+            case Settings.Secure.LOCATION_MODE_SENSORS_ONLY:
+                return context.getResources().getString(R.string.locateion_sensors_only);
+            case Settings.Secure.LOCATION_MODE_HIGH_ACCURACY:
+                return context.getResources().getString(R.string.location_high_accuracy);
+            default:
+                return "Error";
+        }
+    }
+
     @Override
     protected void onHandleIntent(Intent intent) {
+        if (!isIntentValid(intent)) {
+            return;
+        }
         //Log.d(TAG, "onHandleIntent");
-        this.phoneNumber = intent.getExtras().getString("phoneNumber");
+        this.phoneNumber = intent.getExtras().getString(PHONE_NUMBER_KEY);
 
         if (this.phoneNumber.length() == 0) {
             //Log.d(TAG, "Phonenumber empty, return.");
@@ -65,11 +105,57 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
 
         this.context = this;
         this.r = context.getResources();
-        initSending();
+        switch(intent.getExtras().getString(SMS_TYPE_KEY)) {
+            case SMS_TYPE_SEND_LOCATION:
+                initSendingLocation();
+                break;
+            case SMS_TYPE_SEND_LOW_BATTERY_WARNING:
+                sendLowBatteryWarning();
+                break;
+            case SMS_TYPE_SEND_CHARGING_STOPPED_WARNING:
+                if(!wasLastChargingStoppedWarningSentRecently()) {
+                    sendChargingStoppedWarning();
+                } else {
+                    Log.w(TAG, "Not sending charging stopped warning as it was sent recently and may cause unwanted charges");
+                }
+                break;
+        }
     }
 
+    private boolean wasLastChargingStoppedWarningSentRecently() {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        long lastSentAt = settings.getLong(Constants.LAST_CHARGING_STOPPED_WARNING_SENT_AT_KEY, 0);
+        return System.currentTimeMillis() - lastSentAt < ONE_HOUR_MS * 6;
+    }
 
-    private void initSending() {
+    private boolean isSupportedSmsType(String type) {
+        return SMS_TYPE_SEND_LOCATION.equals(type) || SMS_TYPE_SEND_LOW_BATTERY_WARNING.equals
+                (type) || SMS_TYPE_SEND_CHARGING_STOPPED_WARNING.equals(type);
+    }
+
+    private boolean isIntentValid(Intent intent) {
+        if(intent == null) {
+            Log.w(TAG, "Intent is null");
+            return false;
+        }
+        if(intent.getExtras() == null) {
+            Log.w(TAG, "Intent has no extras");
+            return false;
+        }
+        if(intent.getExtras().getString(PHONE_NUMBER_KEY) == null) {
+            Log.w(TAG, "Intent contains no phone number");
+            return false;
+        }
+        if(!isSupportedSmsType(intent.getExtras().getString
+                (SMS_TYPE_KEY))) {
+            Log.w(TAG, "SMS type is missing or not supported: \"" + intent.getExtras().getString
+                    (SMS_TYPE_KEY) + "\"");
+            return false;
+        }
+        return true;
+    }
+
+    private void initSendingLocation() {
         //Log.d(TAG, "initSending()");
         readSettings();
 
@@ -87,8 +173,39 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
 
     }
 
-    public static boolean isLocationFused(Location location) {
-        return !location.hasAltitude() || !location.hasSpeed() || location.getAltitude() == 0;
+    private void sendLowBatteryWarning() {
+        long maybeBatteryPercentage = getBatteryPercentageIfApi21();
+        String message;
+        if(maybeBatteryPercentage != -1) {
+            message = String.format(getString(R.string.low_battery_x_remaining), maybeBatteryPercentage);
+        } else {
+            message = getString(R.string.low_battery);
+        }
+        this.sendSMS(phoneNumber, message);
+    }
+
+    private long getBatteryPercentageIfApi21() {
+        if(Build.VERSION.SDK_INT >= 21) {
+            BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
+            return bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+        } else {
+            return -1;
+        }
+    }
+
+    private void sendChargingStoppedWarning() {
+        long maybeBatteryPercentage = getBatteryPercentageIfApi21();
+        String message;
+        if(maybeBatteryPercentage != -1) {
+            message = String.format(getString(R.string.charging_stopped_x_remaining), maybeBatteryPercentage);
+        } else {
+            message = getString(R.string.charging_stopped);
+        }
+        this.sendSMS(phoneNumber, message);
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putLong(Constants.LAST_CHARGING_STOPPED_WARNING_SENT_AT_KEY, System.currentTimeMillis());
+        editor.apply();
     }
 
     @Override
@@ -294,10 +411,6 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
         });
     }
 
-    public interface OnNetworkMessageSentListener {
-        public void onNetworkMessageSent();
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -310,29 +423,6 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
         super.onDestroy();
     }
 
-    public static int getLocationMode(Context context) {
-        try {
-            return Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
-        } catch (Settings.SettingNotFoundException e) {
-            return -1;
-        }
-    }
-
-    public static String locationToString(Context context, int mode) {
-        switch (mode) {
-            case Settings.Secure.LOCATION_MODE_OFF:
-                return context.getResources().getString(R.string.location_mode_off);
-            case Settings.Secure.LOCATION_MODE_BATTERY_SAVING:
-                return context.getResources().getString(R.string.location_battery_saving);
-            case Settings.Secure.LOCATION_MODE_SENSORS_ONLY:
-                return context.getResources().getString(R.string.locateion_sensors_only);
-            case Settings.Secure.LOCATION_MODE_HIGH_ACCURACY:
-                return context.getResources().getString(R.string.location_high_accuracy);
-            default:
-                return "Error";
-        }
-    }
-
     public void sendSMS(String phoneNumber, String message) {
         //Log.d(TAG, "Send SMS: " + phoneNumber + ", " + message);
         //on samsung intents can't be null. the messages are not sent if intents are null
@@ -342,6 +432,10 @@ public class SmsSenderService extends IntentService implements OnLocationUpdated
         SmsManager smsManager = SmsManager.getDefault();
         ArrayList<String> parts = smsManager.divideMessage(message);
         smsManager.sendMultipartTextMessage(phoneNumber, null, parts, samsungFix, samsungFix);
+    }
+
+    public interface OnNetworkMessageSentListener {
+        public void onNetworkMessageSent();
     }
 }
 

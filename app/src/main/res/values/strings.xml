@@ -1,10 +1,25 @@
 <resources>
+    <!-- Settings -->
+    <string name="settings_enable_in_ups_mode">settings_enable_in_ups_mode</string>
+    <string name="settings_send_low_battery_warnings">settings_send_low_battery_warnings</string>
+    <string name="settings_send_charging_stopped_warnings">settings_send_charging_stopped_warnings</string>
+
+    <string name="send_low_battery_warnings">Send low battery warning</string>
+    <string name="send_low_battery_warnings_summary">Send an SMS to the given number when battery is low.</string>
+    <string name="send_charging_stopped_warnings">Send charging stopped warning</string>
+    <string name="send_charging_stopped_warnings_summary">Send an SMS to the given number when charging stopped.</string>
+
     <string name="app_name">Locate driver</string>
     <string name="current_state_card_title">Setup</string>
     <string name="settings_card_title">Settings</string>
     <string name="about_card_title">About</string>
     <string name="destination">Pick destination</string>
     <string name="keyword">SMS Keyword:</string>
+    <string name="phone_number">Phone number for battery warnings</string>
+    <string name="charging_stopped">Charging stopped</string>
+    <string name="charging_stopped_x_remaining">Charging stopped: %1$d %% remaining</string>
+    <string name="low_battery">Low battery</string>
+    <string name="low_battery_x_remaining">Low battery: %1$d %% remaining</string>
     <string name="destination_error">Error choosing destination :(</string>
     <string name="stop">Stop</string>
     <string name="start">Start</string>
@@ -14,6 +29,8 @@
     <string name="error_permission">Application needs all the permissions to be granted because without them it can\'t function correctly.</string>
     <string name="sound_title">Sound (not yet)</string>
     <string name="sound_summary">Notification when keyword was detected.</string>
+    <string name="ultra_power_saving_mode">Ultra power saving mode</string>
+    <string name="ultra_power_saving_mode_summary">Enable the app to run in ultra power saving mode (may not work on all devices)</string>
     <string name="detected_message_title">First message</string>
     <string name="detected_message_summary">Acknowledge that keyword was detected and send mobile data and GPS status.</string>
     <string name="gps_message_title">Second message</string>
