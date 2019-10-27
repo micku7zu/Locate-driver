@@ -35,10 +35,31 @@
         android:defaultValue="true"/>
 
     <CheckBoxPreference
+        android:key="@string/settings_send_low_battery_warnings"
+        android:title="@string/send_low_battery_warnings"
+        android:summary="@string/send_low_battery_warnings_summary"
+        android:defaultValue="false"/>
+
+    <CheckBoxPreference
+        android:key="@string/settings_send_charging_stopped_warnings"
+        android:title="@string/send_charging_stopped_warnings"
+        android:summary="@string/send_charging_stopped_warnings_summary"
+        android:defaultValue="false"/>
+
+    <CheckBoxPreference
         android:enabled="false"
         android:key="settings_sound"
         android:title="@string/sound_title"
         android:summary="@string/sound_summary"
         android:defaultValue="false"/>
+
+    <!-- NOTE: If uncommenting this, also uncomment REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+    permission in manifest. It is not used by default as Google Play restricts it -->
+    <!--CheckBoxPreference
+        android:enabled="true"
+        android:key="@string/settings_enable_in_ups_mode"
+        android:title="@string/ultra_power_saving_mode"
+        android:summary="@string/ultra_power_saving_mode_summary"
+        android:defaultValue="false"/-->
 
 </PreferenceScreen>

@@ -1,5 +1,6 @@
 package com.micutu.locatedriver;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,8 +10,15 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
+import android.os.PowerManager;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.TintableBackgroundView;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -33,14 +41,17 @@ import com.micutu.locatedriver.BroadcastReceivers.SmsReceiver;
 import com.micutu.locatedriver.Fragments.LDPlaceAutocompleteFragment;
 import com.micutu.locatedriver.Model.LDPlace;
 import com.micutu.locatedriver.Services.SmsSenderService;
+import com.micutu.locatedriver.Utilities.Constants;
 import com.micutu.locatedriver.Utilities.Permissions;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private Boolean running = null;
     private String keyword = null;
+    private String phoneNumber = null;
     private LDPlace place = null;
+    private int IGNORE_BATTERY_OPTIMIZATIONS_REQUEST_CODE = 3;
 
 
     @Override
@@ -54,6 +65,38 @@ public class MainActivity extends AppCompatActivity {
         updateUI();
         toggleBroadcastReceiver(); //set broadcast receiver for sms
         scrollTop();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @RequiresApi(23)
+    private void requestIgnoreBatteryOptimizationsPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission
+                .REQUEST_IGNORE_BATTERY_OPTIMIZATIONS}, IGNORE_BATTERY_OPTIMIZATIONS_REQUEST_CODE);
+    }
+
+    @RequiresApi(23)
+    private void enableAppInUltraPowerSavingMode() {
+        Intent intent = new Intent();
+        String packageName = getPackageName();
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        if (pm.isIgnoringBatteryOptimizations(packageName))
+            intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+        else {
+            intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            intent.setData(Uri.parse("package:" + packageName));
+        }
+        startActivity(intent);
     }
 
     private void scrollTop() {
@@ -107,7 +150,8 @@ public class MainActivity extends AppCompatActivity {
         PackageManager pm = getApplicationContext().getPackageManager();
 
         pm.setComponentEnabledSetting(receiver,
-                (running) ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                (running) ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager
+                        .COMPONENT_ENABLED_STATE_DISABLED,
                 PackageManager.DONT_KILL_APP);
     }
 
@@ -116,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
         initRunningButton();
         initSendLocationButton();
         initKeywordInput();
+        initPhoneNumberInput();
     }
 
     private void initKeywordInput() {
@@ -138,6 +183,28 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable editable) {
 
+            }
+        });
+    }
+
+    private void initPhoneNumberInput() {
+        final TextView phoneNumberInput = (TextView) this.findViewById(R.id.phone_number_input);
+        phoneNumberInput.setText(this.phoneNumber);
+        phoneNumberInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                phoneNumber = s.toString();
+                SharedPreferences.Editor editor = getSettingsEditor();
+                editor.putString(Constants.PHONE_NUMBER_KEY, phoneNumber);
+                editor.apply();
             }
         });
     }
@@ -173,6 +240,23 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, 1);
             }
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode == IGNORE_BATTERY_OPTIMIZATIONS_REQUEST_CODE) {
+            for (int i = 0; i < permissions.length; i++) {
+                // Request that app can ignore battery optimizations
+                if (Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS.equals(permissions[i])
+                        && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        enableAppInUltraPowerSavingMode();
+                    }
+                }
+            }
+        }
     }
 
     /* read the contact from the contact picker */
@@ -216,12 +300,13 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 Intent newIntent = new Intent(MainActivity.this, SmsSenderService.class);
-                newIntent.putExtra("phoneNumber", number);
+                newIntent.putExtra(SmsSenderService.PHONE_NUMBER_KEY, number);
                 MainActivity.this.startService(newIntent);
             }
         });
         builder.setNegativeButton(R.string.cancel, null);
-        builder.setMessage(this.getResources().getString(R.string.are_you_sure) + " " + number + "?");
+        builder.setMessage(this.getResources().getString(R.string.are_you_sure) + " " + number +
+                "?");
         AlertDialog dialog = builder.create();
         dialog.show();
     }
@@ -266,14 +351,19 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private SharedPreferences.Editor getSettingsEditor() {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        return settings.edit();
+    }
 
     private void saveData() {
         this.keyword = ((TextView) this.findViewById(R.id.keyword)).getText() + "";
+        this.phoneNumber = ((TextView) this.findViewById(R.id.phone_number_input)).getText() + "";
 
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = settings.edit();
+        SharedPreferences.Editor editor = getSettingsEditor();
         editor.putBoolean("running", this.running);
         editor.putString("keyword", this.keyword);
+        editor.putString(Constants.PHONE_NUMBER_KEY, this.phoneNumber);
 
         Gson gson = new Gson();
         editor.putString("place", gson.toJson(place, LDPlace.class));
@@ -288,6 +378,7 @@ public class MainActivity extends AppCompatActivity {
 
         this.running = settings.getBoolean("running", false);
         this.keyword = settings.getString("keyword", "");
+        this.phoneNumber = settings.getString(Constants.PHONE_NUMBER_KEY, "");
 
         String json = settings.getString("place", "");
         Gson gson = new Gson();
@@ -307,5 +398,16 @@ public class MainActivity extends AppCompatActivity {
     protected void setupToolbar() {
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if(getString(R.string.settings_enable_in_ups_mode).equals(key)) {
+            // Ups mode: Ultra power saving mode
+            boolean shouldAppBeEnabledInUpsMode = sharedPreferences.getBoolean(key, false);
+            if(shouldAppBeEnabledInUpsMode && Build.VERSION.SDK_INT >= 23) {
+                requestIgnoreBatteryOptimizationsPermission();
+            }
+        }
     }
 }
